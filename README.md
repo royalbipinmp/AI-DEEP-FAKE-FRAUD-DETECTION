@@ -6,7 +6,6 @@ TruthShield is a local AI-powered deepfake fraud detection project with a Flask 
 
 - Image, video, and audio upload workflow
 - Detection result with confidence score, summary, notes, and signal breakdown
-- AI face attendance system with face registration and attendance logs
 - User registration and login
 - Detection history for signed-in users
 - Admin dashboard for monitoring users and recent detections
@@ -19,7 +18,6 @@ TruthShield is a local AI-powered deepfake fraud detection project with a Flask 
 .
 |-- app.py
 |-- index.html
-|-- attendance.html
 |-- upload.html
 |-- login.html
 |-- register.html
@@ -103,14 +101,6 @@ You can use this account to access [admin.html](/C:/Users/Dell/Documents/deepfak
 3. Upload an image, video, or audio file.
 4. Run analysis and review the result summary.
 5. Signed-in users can review previous scans in [history.html](/C:/Users/Dell/Documents/deepfake-frontend/history.html).
-
-## Face Attendance Workflow
-
-1. Open [attendance.html](/C:/Users/Dell/Documents/deepfake-frontend/attendance.html).
-2. Start the camera or choose an image file.
-3. Register an employee with name, employee code, and a clear reference face image.
-4. Use the same page to mark attendance from camera capture or an uploaded image.
-5. Review the live attendance summary and recent attendance records on the dashboard.
 
 ## Training Notes
 

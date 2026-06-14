@@ -1,0 +1,26 @@
+dataset:
+  root: "training/datasets/merged-balanced/merged_vid_dataset"
+  processed_root: "training/processed/merged-balanced"
+  fake_dir: "fake"
+  real_dir: "real"
+  metadata_csv: ""
+  image_dir: ""
+  train_ratio: 0.75
+  val_ratio: 0.125
+  test_ratio: 0.125
+  random_seed: 42
+  max_videos_per_class:
+  frames_per_video: 5
+  min_frame_size: 224
+
+training:
+  model_id: "ashish-001/deepfake-detection-using-ViT"
+  output_dir: "training/checkpoints/vit-merged-balanced"
+  image_size: 224
+  batch_size: 4
+  num_workers: 0
+  learning_rate: 0.000015
+  weight_decay: 0.01
+  epochs: 2
+  mixed_precision: false
+  frame_sample_limit: 300

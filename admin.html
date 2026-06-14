@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | TruthShield</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+<div class="page-bg"></div>
+
+<header class="topbar">
+    <a href="index.html" class="brand">
+        <span class="brand-mark">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+                <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="6" fill="none"></circle>
+                <circle cx="50" cy="50" r="12" fill="currentColor"></circle>
+            </svg>
+        </span>
+        <span>TruthShield</span>
+    </a>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="upload.html">Detection</a>
+        <a href="history.html" id="historyNavLink">History</a>
+        <a href="admin.html" id="adminNavLink" class="active">Admin</a>
+    </nav>
+
+    <div class="nav-actions" id="guestActions">
+        <a href="login.html" class="ghost-btn">Login</a>
+        <a href="register.html" class="accent-btn">Register</a>
+    </div>
+
+    <div class="nav-actions hidden-nav" id="userActions">
+        <span class="nav-user-pill" id="navUserName">Admin</span>
+        <button type="button" class="ghost-btn" id="logoutBtn">Logout</button>
+    </div>
+</header>
+
+<main class="dashboard-page">
+    <section class="page-heading">
+        <div>
+            <p class="eyebrow">Admin controls</p>
+            <h1>Registered users and detection monitoring</h1>
+            <p>The admin dashboard reads directly from the project database so you can review who registered and what detections were saved.</p>
+        </div>
+        <div class="heading-chip">Admin only</div>
+    </section>
+
+    <section class="stat-grid">
+        <article class="stat-card">
+            <span>Total users</span>
+            <strong id="totalUsers">0</strong>
+            <p>All accounts stored in the database.</p>
+        </article>
+        <article class="stat-card">
+            <span>Total detections</span>
+            <strong id="totalDetections">0</strong>
+            <p>All scans saved from the detection page.</p>
+        </article>
+        <article class="stat-card">
+            <span>Flagged detections</span>
+            <strong id="flaggedDetections">0</strong>
+            <p>Scans currently marked as fake by the backend.</p>
+        </article>
+    </section>
+
+    <section class="table-layout">
+        <article class="table-card">
+            <div class="table-head">
+                <div>
+                    <h2>Registered users</h2>
+                    <p>Visible only to the administrator.</p>
+                </div>
+                <div class="table-badge">User management view</div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="3" class="empty-state">Loading registered users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+
+        <article class="table-card">
+            <div class="table-head">
+                <div>
+                    <h2>Recent detections</h2>
+                    <p>Latest saved scans from registered users.</p>
+                </div>
+                <div class="table-badge">System activity</div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>File</th>
+                            <th>Media</th>
+                            <th>Result</th>
+                            <th>Confidence</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentDetectionsBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">Loading recent detections...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </article>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <p>&copy; 2026 TruthShield AI Deepfake Detection System</p>
+</footer>
+
+<script src="auth-nav.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TruthShield AI Deepfake Detection</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body id="top">
+
+<header class="navbar">
+    <div class="nav-left">
+        <div class="logo">
+            <svg class="ai-logo" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="#6366f1" stroke-width="4" fill="none"></circle>
+                <circle cx="50" cy="50" r="10" fill="#6366f1"></circle>
+            </svg>
+            <span>TruthShield</span>
+        </div>
+    </div>
+
+    <div class="nav-center">
+        <a href="#top">Home</a>
+        <a href="#about">About</a>
+        <a href="#works">How it Works</a>
+        <a href="upload.html">Detection</a>
+        <a href="history.html" id="historyNavLink" class="hidden-nav">History</a>
+        <a href="admin.html" id="adminNavLink" class="hidden-nav">Admin</a>
+    </div>
+
+    <div class="nav-right" id="guestActions">
+        <a href="login.html" class="login-btn">Login</a>
+        <a href="register.html" class="signup-btn">Register</a>
+    </div>
+
+    <div class="nav-right hidden-nav" id="userActions">
+        <span class="nav-user-pill" id="navUserName">User</span>
+        <button type="button" class="login-btn" id="logoutBtn">Logout</button>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="hero-text hero-reveal">
+        <p class="hero-label">Secure Media Verification</p>
+        <h1>AI Deepfake Fraud Detection</h1>
+        <p>
+            Use our AI deepfake detection tool to quickly check if an image, video, or voice is real or fake.
+            You'll get fast results, clear reports, and cultural insights.
+        </p>
+        <div class="hero-actions">
+            <button class="main-btn" id="startDetectionBtn" type="button">Start Detection</button>
+            <a href="#works" class="sub-btn">How It Works</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span>Support</span>
+                <strong>Image, Video, Audio</strong>
+            </div>
+            <div class="hero-stat">
+                <span>Output</span>
+                <strong>Confidence + Summary</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="deepfake-visual hero-reveal">
+        <div class="real-side">
+            <span>REAL</span>
+        </div>
+        <div class="fake-side">
+            <span>DEEPFAKE</span>
+        </div>
+        <div class="scan-line"></div>
+    </div>
+</section>
+
+<section id="works" class="works-section">
+    <h2>How It Works</h2>
+    <p class="works-desc">
+        Our AI system analyzes uploaded media to detect whether the content is real or manipulated using advanced deep learning models.
+    </p>
+
+    <div class="works-flow">
+        <div class="flow-step">
+            <div class="step-number">1</div>
+            <div class="flow-icon">&#128228;</div>
+            <h3>Upload Media</h3>
+            <p>Upload image, video, or audio for verification.</p>
+        </div>
+
+        <div class="flow-arrow">&#8594;</div>
+
+        <div class="flow-step">
+            <div class="step-number">2</div>
+            <div class="flow-icon">&#129504;</div>
+            <h3>AI Analysis</h3>
+            <p>The AI analyzes facial patterns and artifacts.</p>
+        </div>
+
+        <div class="flow-arrow">&#8594;</div>
+
+        <div class="flow-step">
+            <div class="step-number">3</div>
+            <div class="flow-icon">&#128269;</div>
+            <h3>Detection Result</h3>
+            <p>Receive clear results showing real or deepfake.</p>
+        </div>
+    </div>
+</section>
+
+<section id="about" class="features">
+    <h2>About TruthShield</h2>
+    <p class="about-intro">
+        TruthShield is an AI-powered deepfake fraud detection platform designed to identify manipulated images, videos, and audio content.
+        With the rapid growth of artificial intelligence, deepfake technology has made it easier to create realistic fake media that can spread misinformation and fraud.
+    </p>
+
+    <div class="feature-grid">
+        <div class="card">
+            <h3>&#129504; AI Detection</h3>
+            <p>Our AI models analyze facial patterns and digital artifacts to detect deepfake media.</p>
+        </div>
+
+        <div class="card">
+            <h3>&#128274; Fraud Prevention</h3>
+            <p>TruthShield helps prevent misinformation, identity fraud, and deepfake scams.</p>
+        </div>
+
+        <div class="card">
+            <h3>&#9889; Fast Analysis</h3>
+            <p>The system quickly processes uploaded media and provides reliable detection results.</p>
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <h3>TruthShield</h3>
+            <p>AI Deepfake Detection System for secure and reliable media verification.</p>
+        </div>
+
+        <div class="footer-links">
+            <h4>Quick Links</h4>
+            <a href="#top">&#127968; Home</a>
+            <a href="#about">&#8505;&#65039; About</a>
+            <a href="#works">&#9881;&#65039; How It Works</a>
+            <a href="upload.html">&#128269; Detection</a>
+        </div>
+
+        <div class="footer-contact">
+            <h4>Contact</h4>
+            <p>&#128231; support@truthshield.com</p>
+            <p>&#128222; +91 98765 43210</p>
+            <p>&#128205; India</p>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <p>&copy; 2026 TruthShield AI Deepfake Detection System | All Rights Reserved</p>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+<script src="auth-nav.js"></script>
+</body>
+</html>

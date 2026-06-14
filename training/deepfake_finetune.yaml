@@ -1,0 +1,26 @@
+dataset:
+  root: "training/datasets/dfd-original"
+  processed_root: "training/processed/dfd-original"
+  fake_dir: "DFD_manipulated_sequences/DFD_manipulated_sequences"
+  real_dir: "DFD_original sequences/DFD_original_sequences"
+  metadata_csv: ""
+  image_dir: ""
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  random_seed: 42
+  max_videos_per_class: null
+  frames_per_video: 8
+  min_frame_size: 224
+
+training:
+  model_id: "ashish-001/deepfake-detection-using-ViT"
+  output_dir: "training/checkpoints/vit-kaggle-deepfake"
+  image_size: 224
+  batch_size: 8
+  num_workers: 0
+  learning_rate: 0.00002
+  weight_decay: 0.01
+  epochs: 3
+  mixed_precision: false
+  frame_sample_limit: null

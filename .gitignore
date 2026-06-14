@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+
+# Local runtime and generated files
+truthshield.db
+uploads/
+
+# Training artifacts and downloaded datasets
+DATASET/
+training/checkpoints/
+training/datasets/
+training/processed/
+training/__pycache__/
+
+# Keep placeholder files when present
+!training/datasets/.gitkeep
+!training/processed/.gitkeep

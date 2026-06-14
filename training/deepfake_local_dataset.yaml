@@ -1,0 +1,26 @@
+dataset:
+  root: "DATASET"
+  processed_root: "training/processed/local-dataset"
+  fake_dir: "Manipulate"
+  real_dir: "Authenticate"
+  metadata_csv: ""
+  image_dir: ""
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 42
+  max_videos_per_class:
+  frames_per_video: 6
+  min_frame_size: 224
+
+training:
+  model_id: "C:/Users/Dell/Documents/deepfake-frontend/training/checkpoints/vit-kaggle-deepfake"
+  output_dir: "training/checkpoints/vit-local-dataset"
+  image_size: 224
+  batch_size: 2
+  num_workers: 0
+  learning_rate: 0.00001
+  weight_decay: 0.01
+  epochs: 2
+  mixed_precision: false
+  frame_sample_limit:

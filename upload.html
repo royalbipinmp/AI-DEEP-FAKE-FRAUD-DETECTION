@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Workspace | TruthShield</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="upload.css">
+</head>
+<body>
+    <div class="page-bg"></div>
+
+    <header class="topbar">
+        <a href="index.html" class="brand">
+            <span class="brand-mark">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                    <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="6" fill="none"></circle>
+                    <circle cx="50" cy="50" r="12" fill="currentColor"></circle>
+                </svg>
+            </span>
+            <span class="brand-text">TruthShield</span>
+        </a>
+
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#works">How It Works</a>
+            <a href="upload.html" class="active">Detection</a>
+            <a href="history.html" id="historyNavLink" class="hidden-nav">History</a>
+            <a href="admin.html" id="adminNavLink" class="hidden-nav">Admin</a>
+        </nav>
+
+        <div class="nav-actions" id="guestActions">
+            <a href="login.html" class="ghost-btn">Login</a>
+            <a href="register.html" class="accent-btn">Register</a>
+        </div>
+
+        <div class="nav-actions hidden-nav" id="userActions">
+            <span class="nav-user-pill" id="navUserName">User</span>
+            <button type="button" class="ghost-btn" id="logoutBtn">Logout</button>
+        </div>
+    </header>
+
+    <main class="upload-page">
+        <section class="hero-panel">
+            <div class="hero-copy">
+                <p class="eyebrow">TruthShield detection workspace</p>
+                <h1>Upload media and run a deepfake screening.</h1>
+                <p class="hero-text">
+                    Use this workspace to upload an image, video, or audio file and generate a clean,
+                    confidence-based detection summary.
+                </p>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <span>Media support</span>
+                    <strong>Image, Video, Audio</strong>
+                </div>
+                <div class="stat-card">
+                    <span>Response style</span>
+                    <strong>Confidence + review notes</strong>
+                </div>
+                <div class="stat-card">
+                    <span>Workflow</span>
+                    <strong>Upload, scan, review</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="workspace">
+            <div class="upload-card">
+                <div class="section-head">
+                    <div>
+                        <p class="section-label">Upload Center</p>
+                        <h2>Select your media file</h2>
+                    </div>
+                </div>
+
+                <div class="drop-zone" id="dropZone" tabindex="0">
+                    <input type="file" id="fileInput" accept="image/*,video/*,audio/*" hidden>
+                    <div class="drop-inner">
+                        <span class="drop-kicker">Drag and drop</span>
+                        <h3>Drop your file here</h3>
+                        <p>Supported formats include JPG, PNG, MP4, MOV, MP3, and WAV.</p>
+                        <button type="button" class="secondary-btn" id="browseBtn">Choose File</button>
+                    </div>
+                </div>
+
+                <div class="selected-file">
+                    <div>
+                        <p class="info-label">Selected file</p>
+                        <h3 id="fileName">No file selected</h3>
+                        <p id="fileMeta">Choose a file to preview details before analysis.</p>
+                    </div>
+                    <span class="type-badge" id="fileTypeBadge">Waiting</span>
+                </div>
+
+                <div class="preview-panel" id="previewPanel" hidden>
+                    <div class="preview-head">
+                        <span>Preview</span>
+                    </div>
+                    <div class="preview-area" id="previewArea"></div>
+                </div>
+
+                <div class="action-row">
+                    <button type="button" class="primary-btn" id="analyzeBtn">Run Detection</button>
+                    <p class="status-message" id="statusMessage">No file uploaded yet.</p>
+                </div>
+            </div>
+
+            <aside class="result-card">
+                <div class="section-head">
+                    <div>
+                        <p class="section-label">Result Panel</p>
+                        <h2>Detection summary</h2>
+                    </div>
+                </div>
+
+                <div class="result-state" id="resultState">
+                    <span class="result-tag" id="resultTag">Waiting</span>
+                    <h3 id="resultTitle">No analysis yet</h3>
+                    <p id="resultSummary">Upload a file and run detection to generate a summary.</p>
+                </div>
+
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <span>Confidence</span>
+                        <strong id="confidenceValue">--</strong>
+                    </div>
+                    <div class="metric-card">
+                        <span>Media Type</span>
+                        <strong id="mediaTypeValue">--</strong>
+                    </div>
+                    <div class="metric-card">
+                        <span>File Size</span>
+                        <strong id="fileSizeValue">--</strong>
+                    </div>
+                    <div class="metric-card">
+                        <span>Review Mode</span>
+                        <strong>Standard</strong>
+                    </div>
+                </div>
+
+                <div class="notes-box">
+                    <span>Analysis Notes</span>
+                    <p id="notesValue">A detailed review note will appear here after the scan finishes.</p>
+                </div>
+
+                <div class="chart-panel">
+                    <div class="chart-head">
+                        <span>Signal Breakdown</span>
+                        <p id="chartCaption">Your result breakdown will appear here after analysis.</p>
+                    </div>
+
+                    <div class="chart-layout">
+                        <div class="chart-canvas-wrap">
+                            <canvas id="signalChart" width="240" height="240"></canvas>
+                        </div>
+                        <div class="signal-list" id="signalList">
+                            <div class="signal-empty">No signal breakdown available yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="page-footer">
+        <p>&copy; 2026 TruthShield AI Deepfake Detection System</p>
+    </footer>
+
+    <script src="auth-nav.js"></script>
+    <script src="upload.js"></script>
+</body>
+</html>

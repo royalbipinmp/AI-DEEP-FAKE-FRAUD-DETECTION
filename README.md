@@ -35,7 +35,7 @@ TruthShield is a local AI-powered deepfake fraud detection project with a Flask 
 ## Tech Stack
 
 - Frontend: HTML, CSS, JavaScript
-- Backend: Flask
+- Backend: Python With Flask 
 - Database: MySQL or SQLite
 - AI/ML: PyTorch, Transformers, OpenCV, Pillow, NumPy
 

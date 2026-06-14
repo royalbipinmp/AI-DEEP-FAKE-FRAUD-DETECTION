@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 import wave
@@ -22,6 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent
 SQLITE_DATABASE_PATH = BASE_DIR / "truthshield.db"
 UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
+ATTENDANCE_UPLOAD_DIR = UPLOAD_DIR / "attendance"
+ATTENDANCE_UPLOAD_DIR.mkdir(exist_ok=True)
 DATASET_DIR = BASE_DIR / "DATASET"
 
 REQUESTED_DB_ENGINE = os.getenv("TRUTHSHIELD_DB_ENGINE", "mysql").lower()
@@ -66,6 +69,9 @@ MODEL_SOURCE = None
 MAX_ANALYSIS_DIMENSION = 480
 VIDEO_MIN_SAMPLES = 4
 VIDEO_MAX_SAMPLES = 8
+ATTENDANCE_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}
+ATTENDANCE_FACE_SIZE = 32
+ATTENDANCE_SIMILARITY_THRESHOLD = 0.82
 
 torch.set_num_threads(max(1, min(4, os.cpu_count() or 1)))
 
@@ -246,6 +252,26 @@ def get_schema_script(engine: str) -> str:
             created_at VARCHAR(64) NOT NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS attendance_profiles (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            full_name VARCHAR(255) NOT NULL,
+            employee_code VARCHAR(120) NOT NULL UNIQUE,
+            face_signature LONGTEXT NOT NULL,
+            face_image_path VARCHAR(255) NOT NULL,
+            created_at VARCHAR(64) NOT NULL,
+            last_seen_at VARCHAR(64) NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS attendance_logs (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            profile_id INT NOT NULL,
+            captured_image_path VARCHAR(255) NOT NULL,
+            similarity FLOAT NOT NULL,
+            status VARCHAR(32) NOT NULL,
+            created_at VARCHAR(64) NOT NULL,
+            FOREIGN KEY (profile_id) REFERENCES attendance_profiles(id) ON DELETE CASCADE
+        );
         """
 
     return """
@@ -269,6 +295,26 @@ def get_schema_script(engine: str) -> str:
         notes TEXT NOT NULL,
         created_at TEXT NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users (id)
+    );
+
+    CREATE TABLE IF NOT EXISTS attendance_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        full_name TEXT NOT NULL,
+        employee_code TEXT NOT NULL UNIQUE,
+        face_signature TEXT NOT NULL,
+        face_image_path TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        last_seen_at TEXT
+    );
+
+    CREATE TABLE IF NOT EXISTS attendance_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        profile_id INTEGER NOT NULL,
+        captured_image_path TEXT NOT NULL,
+        similarity REAL NOT NULL,
+        status TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        FOREIGN KEY (profile_id) REFERENCES attendance_profiles (id)
     );
     """
 
@@ -309,6 +355,10 @@ def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def allowed_attendance_image(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ATTENDANCE_IMAGE_EXTENSIONS
+
+
 def resolve_media_type(filename: str) -> str:
     extension = filename.rsplit(".", 1)[-1].lower()
 
@@ -331,6 +381,63 @@ def get_user_by_id(user_id: int):
 
 def clamp(value: float, low: float, high: float) -> float:
     return max(low, min(high, value))
+
+
+def serialize_signature(signature: np.ndarray) -> str:
+    return json.dumps(signature.astype(float).tolist(), separators=(",", ":"))
+
+
+def deserialize_signature(signature_text: str) -> np.ndarray:
+    values = json.loads(signature_text)
+    return np.asarray(values, dtype=np.float32)
+
+
+def cosine_similarity(vector_a: np.ndarray, vector_b: np.ndarray) -> float:
+    denominator = float(np.linalg.norm(vector_a) * np.linalg.norm(vector_b))
+    if denominator == 0.0:
+        return 0.0
+    return float(np.dot(vector_a, vector_b) / denominator)
+
+
+def build_face_signature(face_bgr: np.ndarray) -> np.ndarray:
+    gray_face = cv2.cvtColor(face_bgr, cv2.COLOR_BGR2GRAY)
+    resized_face = cv2.resize(gray_face, (ATTENDANCE_FACE_SIZE, ATTENDANCE_FACE_SIZE))
+    normalized_face = cv2.equalizeHist(resized_face).astype(np.float32) / 255.0
+    histogram = cv2.calcHist([resized_face], [0], None, [32], [0, 256]).flatten().astype(np.float32)
+    histogram_sum = float(histogram.sum())
+    if histogram_sum > 0:
+        histogram /= histogram_sum
+    compact_pixels = cv2.resize(normalized_face, (16, 16), interpolation=cv2.INTER_AREA).flatten()
+    signature = np.concatenate([compact_pixels, histogram], axis=0)
+    signature_norm = float(np.linalg.norm(signature))
+    if signature_norm > 0:
+        signature /= signature_norm
+    return signature.astype(np.float32)
+
+
+def extract_face_signature_from_bytes(file_bytes: bytes) -> tuple[np.ndarray, int]:
+    frame = decode_image(file_bytes)
+    if frame is None:
+        raise ValueError("Unable to decode the uploaded image.")
+
+    primary_face, face_count = extract_primary_face(frame)
+    if primary_face is None:
+        raise ValueError("No clear face detected. Please use a front-facing image with better lighting.")
+
+    return build_face_signature(primary_face), face_count
+
+
+def make_attendance_file_name(prefix: str, original_name: str) -> str:
+    safe_name = secure_filename(original_name) or f"{prefix}.jpg"
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    return f"{prefix}_{timestamp}_{safe_name}"
+
+
+def get_today_bounds() -> tuple[str, str]:
+    today = datetime.now().astimezone().date()
+    start = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc).isoformat()
+    end = datetime.combine(today, datetime.max.time(), tzinfo=timezone.utc).isoformat()
+    return start, end
 
 
 def make_signal(label: str, score: float, explanation: str) -> dict[str, object]:
@@ -1512,6 +1619,18 @@ def analyze_media(saved_path: Path, file_bytes: bytes, file_name: str, media_typ
     raise ValueError("Unsupported media type.")
 
 
+def format_attendance_row(row) -> dict[str, object]:
+    return {
+        "id": row["id"],
+        "fullName": row["full_name"],
+        "employeeCode": row["employee_code"],
+        "capturedImagePath": row["captured_image_path"],
+        "similarity": round(float(row["similarity"]) * 100, 1),
+        "status": row["status"],
+        "createdAt": row["created_at"],
+    }
+
+
 @app.after_request
 def apply_cors_headers(response):
     response.headers["Access-Control-Allow-Origin"] = "*"
@@ -1525,6 +1644,203 @@ def handle_options_preflight():
     if request.method == "OPTIONS":
         return app.make_default_options_response()
     return None
+
+
+@app.route("/api/attendance/register-face", methods=["POST", "OPTIONS"])
+def attendance_register_face():
+    full_name = (request.form.get("full_name") or "").strip()
+    employee_code = (request.form.get("employee_code") or "").strip().upper()
+    file = request.files.get("file")
+
+    if len(full_name) < 3:
+        return json_error("Full name must be at least 3 characters.")
+    if len(employee_code) < 3:
+        return json_error("Employee code must be at least 3 characters.")
+    if file is None or file.filename == "":
+        return json_error("Please upload a face image.")
+    if not allowed_attendance_image(file.filename):
+        return json_error("Please upload a JPG, PNG, or WEBP image.")
+
+    file_bytes = file.read()
+    try:
+        signature, face_count = extract_face_signature_from_bytes(file_bytes)
+    except ValueError as error:
+        return json_error(str(error), 422)
+
+    saved_name = make_attendance_file_name("profile", file.filename)
+    saved_path = ATTENDANCE_UPLOAD_DIR / saved_name
+    saved_path.write_bytes(file_bytes)
+
+    with get_db_connection() as connection:
+        existing = connection.execute(
+            "SELECT id FROM attendance_profiles WHERE employee_code = ?",
+            (employee_code,),
+        ).fetchone()
+        if existing:
+            return json_error("An employee with this code already exists.", 409)
+
+        cursor = connection.execute(
+            """
+            INSERT INTO attendance_profiles (
+                full_name, employee_code, face_signature, face_image_path, created_at, last_seen_at
+            ) VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                full_name,
+                employee_code,
+                serialize_signature(signature),
+                saved_name,
+                current_timestamp(),
+                None,
+            ),
+        )
+        connection.commit()
+
+    return jsonify(
+        {
+            "message": "Employee face registered successfully.",
+            "profile": {
+                "id": cursor.lastrowid,
+                "fullName": full_name,
+                "employeeCode": employee_code,
+                "faceCount": face_count,
+            },
+        }
+    ), 201
+
+
+@app.route("/api/attendance/mark", methods=["POST", "OPTIONS"])
+def attendance_mark():
+    file = request.files.get("file")
+
+    if file is None or file.filename == "":
+        return json_error("Please upload a face image.")
+    if not allowed_attendance_image(file.filename):
+        return json_error("Please upload a JPG, PNG, or WEBP image.")
+
+    file_bytes = file.read()
+    try:
+        submitted_signature, detected_faces = extract_face_signature_from_bytes(file_bytes)
+    except ValueError as error:
+        return json_error(str(error), 422)
+
+    with get_db_connection() as connection:
+        profiles = connection.execute(
+            """
+            SELECT id, full_name, employee_code, face_signature
+            FROM attendance_profiles
+            ORDER BY created_at DESC
+            """
+        ).fetchall()
+
+        if not profiles:
+            return json_error("No employees are registered yet. Add at least one face profile first.", 404)
+
+        best_profile = None
+        best_similarity = -1.0
+        for profile in profiles:
+            stored_signature = deserialize_signature(profile["face_signature"])
+            similarity = cosine_similarity(submitted_signature, stored_signature)
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_profile = profile
+
+        if best_profile is None or best_similarity < ATTENDANCE_SIMILARITY_THRESHOLD:
+            return json_error(
+                "Face not recognized confidently enough. Try a clearer front-facing image or register the employee first.",
+                404,
+            )
+
+        saved_name = make_attendance_file_name("attendance", file.filename)
+        saved_path = ATTENDANCE_UPLOAD_DIR / saved_name
+        saved_path.write_bytes(file_bytes)
+
+        created_at = current_timestamp()
+        connection.execute(
+            """
+            INSERT INTO attendance_logs (
+                profile_id, captured_image_path, similarity, status, created_at
+            ) VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                int(best_profile["id"]),
+                saved_name,
+                best_similarity,
+                "Present",
+                created_at,
+            ),
+        )
+        connection.execute(
+            "UPDATE attendance_profiles SET last_seen_at = ? WHERE id = ?",
+            (created_at, int(best_profile["id"])),
+        )
+        connection.commit()
+
+    return jsonify(
+        {
+            "message": "Attendance marked successfully.",
+            "match": {
+                "fullName": best_profile["full_name"],
+                "employeeCode": best_profile["employee_code"],
+                "similarity": round(best_similarity * 100, 1),
+                "status": "Present",
+                "detectedFaces": detected_faces,
+            },
+        }
+    )
+
+
+@app.route("/api/attendance/summary", methods=["GET", "OPTIONS"])
+def attendance_summary():
+    start_of_day, end_of_day = get_today_bounds()
+
+    with get_db_connection() as connection:
+        total_profiles = connection.execute(
+            "SELECT COUNT(*) AS count FROM attendance_profiles"
+        ).fetchone()["count"]
+        today_logs = connection.execute(
+            """
+            SELECT COUNT(*) AS count
+            FROM attendance_logs
+            WHERE created_at >= ? AND created_at <= ?
+            """,
+            (start_of_day, end_of_day),
+        ).fetchone()["count"]
+        present_today = connection.execute(
+            """
+            SELECT COUNT(DISTINCT profile_id) AS count
+            FROM attendance_logs
+            WHERE created_at >= ? AND created_at <= ?
+            """,
+            (start_of_day, end_of_day),
+        ).fetchone()["count"]
+        recent_logs = connection.execute(
+            """
+            SELECT
+                attendance_logs.id,
+                attendance_profiles.full_name,
+                attendance_profiles.employee_code,
+                attendance_logs.captured_image_path,
+                attendance_logs.similarity,
+                attendance_logs.status,
+                attendance_logs.created_at
+            FROM attendance_logs
+            JOIN attendance_profiles ON attendance_profiles.id = attendance_logs.profile_id
+            ORDER BY attendance_logs.created_at DESC
+            LIMIT 10
+            """
+        ).fetchall()
+
+    return jsonify(
+        {
+            "stats": {
+                "registeredEmployees": int(total_profiles),
+                "attendanceToday": int(today_logs),
+                "presentToday": int(present_today),
+            },
+            "recentLogs": [format_attendance_row(row) for row in recent_logs],
+        }
+    )
 
 
 @app.route("/api/health", methods=["GET", "OPTIONS"])

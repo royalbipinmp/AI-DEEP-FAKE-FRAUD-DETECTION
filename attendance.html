@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Face Attendance System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="attendance.css">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="page-noise"></div>
+
+        <header class="topbar">
+            <div class="brand-lockup">
+                <div class="brand-mark">AF</div>
+                <div>
+                    <p class="brand-kicker">Smart workplace identity</p>
+                    <h1>AI Face Attendance System</h1>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+            <section class="hero-card">
+                <div class="hero-copy">
+                    <p class="eyebrow">Live recognition workspace</p>
+                    <h2>Register employees and mark attendance from the same screen.</h2>
+                    <p class="hero-text">
+                        Use webcam capture or upload a front-facing image. The system detects a face,
+                        compares it with saved profiles, and records a present entry when a confident match is found.
+                    </p>
+                    <div class="hero-pills">
+                        <span>Face registration</span>
+                        <span>Attendance marking</span>
+                        <span>Daily activity log</span>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <article class="stat-card">
+                        <span>Registered Employees</span>
+                        <strong id="registeredEmployees">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Attendance Today</span>
+                        <strong id="attendanceToday">0</strong>
+                    </article>
+                    <article class="stat-card">
+                        <span>Present Today</span>
+                        <strong id="presentToday">0</strong>
+                    </article>
+                </div>
+            </section>
+
+            <section class="workspace-grid">
+                <article class="panel capture-panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="section-label">Camera Hub</p>
+                            <h3>Live capture and upload</h3>
+                        </div>
+                        <span class="panel-chip" id="cameraStateBadge">Camera offline</span>
+                    </div>
+
+                    <div class="camera-stage">
+                        <video id="cameraPreview" autoplay playsinline muted></video>
+                        <div class="camera-overlay">
+                            <div class="scan-frame"></div>
+                            <p>Center one face inside the frame for best recognition.</p>
+                        </div>
+                    </div>
+
+                    <canvas id="captureCanvas" hidden></canvas>
+
+                    <div class="camera-actions">
+                        <button type="button" class="primary-btn" id="startCameraBtn">Start Camera</button>
+                        <button type="button" class="secondary-btn" id="stopCameraBtn">Stop Camera</button>
+                    </div>
+
+                    <p class="panel-note">
+                        Camera access may require HTTPS or localhost in some browsers. Upload fields are available below as a fallback.
+                    </p>
+                </article>
+
+                <article class="panel register-panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="section-label">Employee Setup</p>
+                            <h3>Register a face profile</h3>
+                        </div>
+                    </div>
+
+                    <form id="registerForm" class="stack-form" novalidate>
+                        <label>
+                            <span>Full name</span>
+                            <input type="text" id="employeeName" placeholder="Enter employee name">
+                        </label>
+                        <label>
+                            <span>Employee code</span>
+                            <input type="text" id="employeeCode" placeholder="EMP-101">
+                        </label>
+                        <label class="file-field">
+                            <span>Upload reference image</span>
+                            <input type="file" id="registerFile" accept="image/png,image/jpeg,image/webp">
+                        </label>
+
+                        <div class="action-cluster">
+                            <button type="button" class="primary-btn" id="registerFromCameraBtn">Register From Camera</button>
+                            <button type="button" class="secondary-btn" id="registerFromFileBtn">Register From File</button>
+                        </div>
+                        <p class="status-text" id="registerStatus">Add the employee details and choose a camera or file source.</p>
+                    </form>
+                </article>
+
+                <article class="panel attendance-panel">
+                    <div class="panel-head">
+                        <div>
+                            <p class="section-label">Attendance Scan</p>
+                            <h3>Mark attendance instantly</h3>
+                        </div>
+                    </div>
+
+                    <div class="result-banner" id="attendanceResult">
+                        <span class="result-tag">Waiting</span>
+                        <h4>No attendance scan yet</h4>
+                        <p>Use the camera or upload a clear employee image to mark attendance.</p>
+                    </div>
+
+                    <label class="file-field">
+                        <span>Upload attendance image</span>
+                        <input type="file" id="attendanceFile" accept="image/png,image/jpeg,image/webp">
+                    </label>
+
+                    <div class="action-cluster">
+                        <button type="button" class="primary-btn" id="markFromCameraBtn">Mark From Camera</button>
+                        <button type="button" class="secondary-btn" id="markFromFileBtn">Mark From File</button>
+                    </div>
+
+                    <div class="metric-strip">
+                        <div>
+                            <span>Matched Employee</span>
+                            <strong id="matchedEmployee">--</strong>
+                        </div>
+                        <div>
+                            <span>Similarity</span>
+                            <strong id="matchSimilarity">--</strong>
+                        </div>
+                    </div>
+
+                    <p class="status-text" id="attendanceStatus">Attendance results will appear here after a successful match.</p>
+                </article>
+            </section>
+
+            <section class="panel log-panel">
+                <div class="panel-head">
+                    <div>
+                        <p class="section-label">Recent Activity</p>
+                        <h3>Latest attendance records</h3>
+                    </div>
+                    <button type="button" class="secondary-btn refresh-btn" id="refreshLogsBtn">Refresh</button>
+                </div>
+
+                <div class="log-list" id="recentLogs">
+                    <article class="log-empty">
+                        <h4>No attendance logs yet</h4>
+                        <p>Register at least one employee and mark attendance to populate this list.</p>
+                    </article>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="attendance.js"></script>
+</body>
+</html>
